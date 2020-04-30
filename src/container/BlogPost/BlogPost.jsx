@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import "./BlogPost.css";
 import Post from "../../component/BlogPost/Post";
-import API from "../../services";
 import firebase from "firebase";
 import { firebaseConfig } from "../../services/Config";
 
