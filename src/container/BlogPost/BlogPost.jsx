@@ -2,58 +2,64 @@ import React, { Component } from "react";
 import "./BlogPost.css";
 import Post from "../../component/BlogPost/Post";
 import API from "../../services";
+import firebase from "firebase";
 import { firebaseConfig } from "../../services/Config";
 
 class BlogPost extends Component {
-  state = {
-    // komponen state dari React untuk statefull component
-    listArtikel: [], // variabel array yang digunakan untuk menyimpan data API
-    insertArtikel: {
-      // variable yang digunakan untuk menampung sementara data yang akan di insert
-      userId: 1, // kolom userId, id, title, dan body sama, mengikuti kolom yang ada pada listArtikel.json
-      id: 1,
-      title: "",
-      body: "",
-    },
-  };
+  constructor(props) {
+    super(props);
+    firebase.initializeApp(firebaseConfig);
+    this.state = {
+      listArtikel: [],
+    };
+  }
+
   ambilDataDariServerAPI = () => {
-    // fungsi untuk mengambil data dari API dengan penambahan sort dan order
-    API.getNewsBlog().then((result) => {
-      this.setState({
-        listArtikel: result,
-      });
+    let ref = firebase.database().ref("/");
+    ref.on("value", (snapshot) => {
+      const state = snapshot.val();
+      this.setState(state);
     });
+  };
+
+  simpanDataKeServerAPI = () => {
+    firebase.database().ref("/").set(this.state);
   };
 
   componentDidMount() {
-    // komponen untuk mengecek ketika compnent telah di-mount-ing, maka panggil API
-    this.ambilDataDariServerAPI(); // ambil data dari server API lokal
+    this.ambilDataDariServerAPI();
   }
 
-  handleHapusArtikel = (data) => {
-    // fungsi yang meng-handle button action hapus data
-    API.deleteNewsBlog(data).then((res) => {
-      // ketika proses hapus berhasil, maka ambil data dari server API lokal
-      this.ambilDataDariServerAPI();
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState !== this.state) {
+      this.simpanDataKeServerAPI();
+    }
+  }
+
+  handleHapusArtikel = (idArtikel) => {
+    const { listArtikel } = this.state;
+    const newState = listArtikel.filter((data) => {
+      return data.uid !== idArtikel;
     });
+    this.setState({ listArtikel: newState });
   };
 
-  handleTambahArtikel = (event) => {
-    // fungsi untuk meng-hadle form tambah data artikel
-    let formInsertArtikel = { ...this.state.insertArtikel }; // clonning data state insertArtikel ke dalam variabel formInsertArtikel
-    let timestamp = new Date().getTime(); // digunakan untuk menyimpan waktu (sebagai ID artikel)
-    formInsertArtikel["id"] = timestamp;
-    formInsertArtikel[event.target.name] = event.target.value; // menyimpan data onchange ke formInsertArtikel sesuai dengan target yg diisi
-    this.setState({
-      insertArtikel: formInsertArtikel,
-    });
-  };
+  handleTombolSimpan = (event) => {
+    let title = this.refs.judulArtikel.value;
+    let body = this.refs.isiArtikel.value;
+    let uid = this.refs.uid.value;
 
-  handleTombolSimpan = () => {
-    // fungsi untuk meng-handle tombol simpan
-    API.postNewsBlog(this.state.insertArtikel).then((response) => {
-      this.ambilDataDariServerAPI(); // reload / refresh data
-    });
+    if (uid && title && body) {
+      const { listArtikel } = this.state;
+      const indeksArtikel = listArtikel.findIndex((data) => {
+        return data.uid === uid;
+      });
+    } else if (title && body) {
+      const uid = new Date().getTime().toString();
+      const { listArtikel } = this.state;
+      listArtikel.push({ uid, title, body });
+      this.setState({ listArtikel });
+    }
   };
 
   render() {
