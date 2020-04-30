@@ -54,66 +54,46 @@ class BlogPost extends Component {
       const indeksArtikel = listArtikel.findIndex((data) => {
         return data.uid === uid;
       });
+      listArtikel[indeksArtikel].title = title;
+      listArtikel[indeksArtikel].body = body;
     } else if (title && body) {
       const uid = new Date().getTime().toString();
       const { listArtikel } = this.state;
       listArtikel.push({ uid, title, body });
       this.setState({ listArtikel });
     }
+
+    this.refs.judulArtikel.value = "";
+    this.refs.isiArtikel.value = "";
+    this.refs.uid.value = "";
   };
 
   render() {
     return (
       <div className="post-artikel">
         <div className="form pb-2 border-bottom">
-          <div className="form-group row">
-            <label htmlFor="title" className="col-sm-2 col-form-label">
-              Judul
-            </label>
-            <div className="col-sm-10">
-              <input
-                type="text"
-                className="form-control"
-                id="title"
-                name="title"
-                onChange={this.handleTambahArtikel}
-              />
-            </div>
-          </div>
-          <div className="form-group row">
-            <label htmlFor="body" className="col-sm-2 col-form-label">
-              Isi
-            </label>
-            <div className="col-sm-10">
-              <textarea
-                className="form-control"
-                id="body"
-                name="body"
-                rows="3"
-                onChange={this.handleTambahArtikel}
-              ></textarea>
-            </div>
-          </div>
+          <div className="form-group row"></div>
+          <div className="form-group row"></div>
+          <input type="hidden" name="uid" ref="uid" />
           <button
             type="submit"
             className="btn btn-primary"
-            onClick={this.handleTombolSimpan}
+            onClick={(this, this.handleTombolSimpan)}
           >
             Simpan
           </button>
         </div>
         <h2>Daftar Artikel</h2>
         {this.state.listArtikel.map((artikel) => {
-          // looping dan masukkan untuk setiap data yang ada di listArtikel ke variabel artikel
           return (
             <Post
-              key={artikel.id}
+              key={artikel.uid}
               judul={artikel.title}
               isi={artikel.body}
-              idArtikel={artikel.id}
+              idArtikel={artikel.uid}
               hapusArtikel={this.handleHapusArtikel}
             />
-          ); // mappingkan data json dari API sesuai dengan kategorinya
+          );
         })}
       </div>
     );
